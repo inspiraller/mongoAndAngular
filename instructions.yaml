@@ -1,0 +1,164 @@
+Time for learning:
+  half day.
+
+First install mongodb:
+
+  1) Enable windows update
+  2) Download hotfix-kb2731284
+  	http://stackoverflow.com/questions/30246428/hotfix-kb2731284-or-later-update-is-installed-no-need-to-zero-out-data-files
+  3) isntall hotfix-kb2731284
+  4) restart machine
+  5) re-disable windows update
+  6) download mongo:
+    Location: https://www.mongodb.com/download-center#community
+    Version: Windows 2008 R2 64bit. works on windows 7 professional.
+
+  7) install mongo
+  8) Update windows path variable so you can access mongo anywhere:
+    Go to Control Panel > System & Security > System > Advanced System Settings > Environment Variables > navigate to the Path variable hit Edit and add :
+    ;C:\mongodb to the Path of c:\programs\mongo... mongo.exe etc...
+
+  9) create directory where you are going to store your databse:
+  C:\baps\jsstack\mongoAndAngular\data\db
+  10.a) Optional - Create mongodb configuration file:
+        http://dba.stackexchange.com/questions/82591/sample-yaml-configuration-files-for-mongodb
+
+        Basic config would be :
+          systemLog:
+              destination: file
+              path: C:\baps\jsstack\mongoAndAngular\log\mongod.log
+          storage:
+              dbPath: C:\baps\jsstack\mongoAndAngular\data\db
+
+  10.b) Set your directory to override mongos default db directory:
+    Useful: http://stackoverflow.com/questions/29749949/how-to-start-mongo-db-on-windows/32328733
+    run in cmd: C:\mongodb\bin\mongod.exe --dbpath "d:\test\mongoAndAngular\data\db"
+    Keep this cmd open, and open another cmd.
+
+
+Npm installs:
+    Note: Make sure you kept that cmd open for mongodb and open another cmd to run anything else.
+    npm install express mongoose mongodb cors --save
+
+Create myData.js:
+
+  [{
+    firstName:'Mike',
+    lastName:'yottan',
+    email:'mike@yottan.com'
+  },
+  {
+    firstName:'susan',
+    lastName:'yottan',
+    email:'susan@yottan.com'
+  },
+  {
+    firstName:'Jane',
+    lastName:'yottan',
+    email:'jane@yottan.com'
+  }]
+
+Import this into mongo:
+//       database name          table name     type       file
+//                  \/                  \/       \/         \/
+  mongoimport --db simple --collection people --jsonArray myData.js
+
+  Note: This adds an id to each object.
+
+    [{
+      _id:'sdfralsdkflaksdf',
+      firstName:'Mike',
+      lastName:'yottan',
+      email:'mike@yottan.com'
+    },
+    {
+      _id:'sdfralsdkflaksdd',
+      firstName:'susan',
+      lastName:'yottan',
+      email:'susan@yottan.com'
+    },
+    {
+      _id:'sdfralsdkflaksdq',
+      firstName:'Jane',
+      lastName:'yottan',
+      email:'jane@yottan.com'
+    }]
+
+Create server.js:
+
+  var express = require("express");
+  var mongoose= require("mongoose");
+  var cors = require('cors');
+  var schemaPerson = {
+    firstName:String,
+    lastName:String,
+    email:String
+  }
+  mongoose.connect('mongodb://localhost/simple');
+  var dbPeople = mongoose.model('Person',schemaPerson, 'people');
+
+  var app = express();
+  app.use(cors());
+  app.get('/people',function(req,res){
+    dbPeople.find(function(err, doc){
+      res.send(doc);
+    })  
+  });
+  app.listen(3000);
+
+Run server.js:
+  node server.js
+
+In browser visit: 
+  localhost:3000/people
+
+
+To view as angular:
+
+  1) Install bower:
+    npm install bower -g;
+  2) install angular.js via bower
+    cd to www folder
+    bower install angularjs
+
+  3) Create index.html
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Angular experiment - picking up mongo data</title>
+    <meta charset="utf-8"/>
+    <script src="/bower_components/angular/angular.js"></script>
+    <script src="/js/app.js"></script>
+  </head>
+  <body ng-app="appBeauty" ng-controller="AppCtrl as app">
+    <ul>
+      <li ng-repeat="person in app.people">
+        {{person.firstName}}
+      </li>
+    </ul>
+  </body>
+</html>
+
+Warning with Angular:
+  typical syntax errors, that don't show up:
+    ng-contoller
+    AppCtol as app
+
+
+  4) Create js/app.js
+  var appBeauty = angular.module('appBeauty',[]);
+
+  appBeauty.controller('AppCtrl', function($http){
+    var app = this;
+    $http.get('http://localhost' + ':' + '3000/people').success(function(result){
+      app.people = result;
+    })
+  })
+  5) node server.js
+  6) create a server to target this angular application.
+  open index.html and see the data coming from node, via mongo
+
+7) if the angular file doesn't load properly make sure there are no syntax errors.
+
+

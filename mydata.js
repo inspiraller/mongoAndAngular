@@ -1,0 +1,15 @@
+[{
+	firstName:'Mike',
+	lastName:'yottan',
+	email:'mike@yottan.com'
+},
+{
+	firstName:'susan',
+	lastName:'yottan',
+	email:'susan@yottan.com'
+},
+{
+	firstName:'Jane',
+	lastName:'yottan',
+	email:'jane@yottan.com'
+}]

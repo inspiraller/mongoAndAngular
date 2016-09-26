@@ -1,0 +1,5 @@
+# comments ...
+www/dist/*
+node_modules/
+data/*
+www/bower_components/*
